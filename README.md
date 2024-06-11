@@ -1,6 +1,6 @@
 # Heath
 
-This Grasshopper plugin provides a UI for life cycle building performance analysis in the Rhino environment. The plugin is not yet [available on Food4Rhino, but its sister app Brimstone is](https://www.food4rhino.com/en/app/brimstone?lang=en).
+This Grasshopper plugin provides a UI for life cycle building performance assessment in the Rhino environment. The plugin is not yet [available on Food4Rhino, but its sister app Brimstone is](https://www.food4rhino.com/en/app/brimstone?lang=en).
 
 ## Features
 * N/A
