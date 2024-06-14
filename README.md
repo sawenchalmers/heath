@@ -17,6 +17,7 @@ This Grasshopper plugin provides a UI for life cycle building performance assess
 
 ### Git usage (authorised users)
 
+* Make sure Rhino/GH files are not open
 * `git pull` to get updates from server (fix any merge issues)
 * `git push` to push to server
 
