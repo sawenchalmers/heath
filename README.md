@@ -8,6 +8,13 @@ This Grasshopper plugin provides a UI for life cycle building performance assess
 ## Development
 * N/A
 
+### Folders
+* /dist - contains releases
+* /doc - contains documentation
+* /model - contains .gh and .3dm files
+* /src - contains source code
+* /test - contains testing files
+
 ### Releasing a new version
 
 ### Git usage (general)
