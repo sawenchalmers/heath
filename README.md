@@ -6,7 +6,9 @@ This Grasshopper plugin provides a UI for life cycle building performance assess
 * N/A
 
 ## Development
-* N/A
+* Ongoing development happens in `dev` branch
+* Releases are merged into `main` branch
+* Versions [use semantic version](semver.org)
 
 ### Folders
 * /dist - contains releases
