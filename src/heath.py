@@ -1,3 +1,9 @@
+# Copyright (c) 2024, Heath.
+# You should have received a copy of the GNU Affero General Public License
+# along with Heath; If not, see <http://www.gnu.org/licenses/>.
+# 
+# @license AGPL-3.0-or-later <https://spdx.org/licenses/AGPL-3.0-or-later>
+
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message
 import rhinoscriptsyntax as rs
 import os, sys

@@ -1,4 +1,11 @@
-""" This file contains Honeybee functions which do not work in Python 3"""
+# Copyright (c) 2024, Heath.
+# You should have received a copy of the GNU Affero General Public License
+# along with Heath; If not, see <http://www.gnu.org/licenses/>.
+# 
+# @license AGPL-3.0-or-later <https://spdx.org/licenses/AGPL-3.0-or-later>
+
+
+""" This file contains patched Honeybee functions which do not work in Python 3"""
 """ Changed lines from ladybug_rhino.togeometry have a "patched" comment"""
 
 import Rhino.Geometry as rg
