@@ -46,11 +46,12 @@ def get_results_folder(ghdoc):
     sc.doc = ghdoc
     return mpl_folder
 
-def create_hb_model(room_geo, construction_sets):
+def create_hb_model(room_geo, construction_sets, programs):
     room_solids = _intersect_room_geometry(room_geo)
     names = [] # todo: allow room names as input
     rooms = _create_rooms(room_solids, names)
-    _apply_construction_sets(rooms, construction_sets)
+    _apply_energy_property(rooms, construction_sets, "construction_set")
+    _apply_energy_property(rooms, programs, "program_type")
     return rooms
 
 def _intersect_room_geometry(room_geo):
@@ -87,12 +88,12 @@ def _create_rooms(room_solids, names):
     return rooms
 
 # hmm, don't like this function mutating the rooms, but it is the HB way
-def _apply_construction_sets(rooms, construction_sets):
+def _apply_energy_property(rooms, data, key):
     for i, room in enumerate(rooms):
-        constr_set = construction_sets[i] \
-            if utils.list_len_equal(construction_sets, rooms) \
-            else construction_sets[0]
-        room.properties.energy.construction_set = constr_set
+        data_pt = data[i] \
+            if utils.list_len_equal(data, rooms) \
+            else data[0]
+        setattr(room.properties.energy, key, data_pt)
 
 class heath_globals:
     version = "0.3.0-dev"
