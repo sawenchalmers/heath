@@ -57,6 +57,10 @@ Contributors: Isac Mjörnell, misac@chalmers.se, Jieming Yan, jieming@chalmers.s
 
 ## Changelog
 
+### 0.2.0
+
+* Updates to UI and back-end
+
 ### 0.1.0
 
 * Initial version

@@ -4,6 +4,13 @@
 # 
 # @license AGPL-3.0-or-later <https://spdx.org/licenses/AGPL-3.0-or-later>
 
+"""
+Inspired by: 
+- HB Intersect Solids
+- HB Room from Solid
+- HB Solve Adjacency
+"""
+
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message
 import rhinoscriptsyntax as rs
 import os, sys
@@ -52,7 +59,8 @@ def create_hb_model(room_geo, construction_sets, programs):
     rooms = _create_rooms(room_solids, names)
     _apply_energy_property(rooms, construction_sets, "construction_set")
     _apply_energy_property(rooms, programs, "program_type")
-    return rooms
+    adj_rooms = _solve_adjacency(rooms)
+    return adj_rooms
 
 def _intersect_room_geometry(room_geo):
     bounding_boxes = [bounding_box(brep) for brep in room_geo]
@@ -83,7 +91,7 @@ def _create_rooms(room_solids, names):
                 'Room volume must be closed to access most honeybee features.\n' \
                 'Preview the output Room to see the holes in your model.'
             print(msg)
-            utils.warn(ghenv.Component, msg)
+            utils.warn(ghenv, msg)
         rooms.append(room)
     return rooms
 
@@ -94,6 +102,14 @@ def _apply_energy_property(rooms, data, key):
             if utils.list_len_equal(data, rooms) \
             else data[0]
         setattr(room.properties.energy, key, data_pt)
+
+def _solve_adjacency(rooms):
+    adj_rooms = [room.duplicate() for room in rooms]
+    adj_info = Room.solve_adjacency(adj_rooms, tolerance)
+    # report all of the adjacency information
+    for adj_face in adj_info['adjacent_faces']:
+        print('"{}" is adjacent to "{}"'.format(adj_face[0], adj_face[1]))
+    return adj_rooms
 
 class heath_globals:
     version = "0.3.0-dev"
@@ -106,7 +122,7 @@ class utils:
         return len(list1) == len(list2)
 
     @staticmethod
-    def warn(ghenv, message):  
+    def warn(ghenv, message):
         ghenv.Component.AddRuntimeMessage(Message.Warning, message)
 
     @staticmethod
