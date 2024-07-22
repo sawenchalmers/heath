@@ -11,12 +11,15 @@ Inspired by:
 - HB Solve Adjacency
 """
 
-from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message
+from typing import Any, List
+from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message # type: ignore
 import rhinoscriptsyntax as rs
 import os, sys
-import Rhino
+import Rhino # type: ignore
+from Rhino.Geometry import Brep # type: ignore
 import scriptcontext as sc
 import importlib
+from pathlib import Path
 
 try:  # import the ladybug_rhino and honeybee dependencies
     from ladybug_rhino.config import angle_tolerance, tolerance
@@ -24,6 +27,9 @@ try:  # import the ladybug_rhino and honeybee dependencies
     # https://discourse.ladybug.tools/t/ladybug-modules-relying-on-rhino-geometry-collections-seem-not-to-work-in-rhino-8-python-3/25222
     # from ladybug_rhino.togeometry import to_polyface3d
     from patch_honeybee import to_polyface3d_patched
+
+    from honeybee_energy.constructionset import ConstructionSet
+    from honeybee_energy.programtype import ProgramType
     
     importlib.reload(sys.modules["patch_honeybee"])
     from ladybug_rhino.grasshopper import document_counter
@@ -34,14 +40,22 @@ try:  # import the ladybug_rhino and honeybee dependencies
 except ImportError as e:
     raise ImportError('\nFailed to import ladybug_rhino:\n\t{}'.format(e))
 
-def get_results_folder(ghdoc):
+def get_results_folder(ghdoc: Any) -> Path:
+    """_summary_
+
+    Args:
+        ghdoc (Any): _description_
+
+    Returns:
+        Path: _description_
+    """
     sc.doc = Rhino.RhinoDoc.ActiveDoc
 
     directory = os.path.dirname(str(Rhino.RhinoDoc.ActiveDoc.Path))
     if directory:
         mpl_folder = os.path.join(directory, heath_globals.results_folder)
     else:
-        directory = (ghenv.Document.FilePath).split("\\")[:-1]
+        directory = (ghenv.Document.FilePath).split("\\")[:-1] # type: ignore
         full_path = '\\'.join(directory)
         mpl_folder = os.path.join(full_path, heath_globals.results_folder)
 
@@ -53,7 +67,17 @@ def get_results_folder(ghdoc):
     sc.doc = ghdoc
     return mpl_folder
 
-def create_hb_model(room_geo, construction_sets, programs):
+def create_hb_model(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType]) -> List[Room]:
+    """_summary_
+
+    Args:
+        room_geo (List[Brep]): _description_
+        construction_sets (List[ConstructionSet]): _description_
+        programs (List[ProgramType]): _description_
+
+    Returns:
+        List[Room]: _description_
+    """
     room_solids = _intersect_room_geometry(room_geo)
     names = [] # todo: allow room names as input
     rooms = _create_rooms(room_solids, names)
@@ -62,12 +86,29 @@ def create_hb_model(room_geo, construction_sets, programs):
     adj_rooms = _solve_adjacency(rooms)
     return adj_rooms
 
-def _intersect_room_geometry(room_geo):
+def _intersect_room_geometry(room_geo: List[Brep]) -> List[Brep]:
+    """_summary_
+
+    Args:
+        room_geo (List[Brep]): _description_
+
+    Returns:
+        List[Brep]: _description_
+    """
     bounding_boxes = [bounding_box(brep) for brep in room_geo]
     room_solids = intersect_solids(room_geo, bounding_boxes)
     return room_solids
 
-def _create_rooms(room_solids, names):
+def _create_rooms(room_solids: List[Brep], names: List[str]) -> List[Room]:
+    """_summary_
+
+    Args:
+        room_solids (List[Brep]): _description_
+        names (List[str]): _description_
+
+    Returns:
+        List[Room]: _description_
+    """
     rooms = []
     roof_angle = 60 # default from HB
     floor_angle = 180 - roof_angle # default from HB
@@ -91,19 +132,34 @@ def _create_rooms(room_solids, names):
                 'Room volume must be closed to access most honeybee features.\n' \
                 'Preview the output Room to see the holes in your model.'
             print(msg)
-            utils.warn(ghenv, msg)
+            utils.warn(ghenv, msg) # type: ignore
         rooms.append(room)
     return rooms
 
 # hmm, don't like this function mutating the rooms, but it is the HB way
-def _apply_energy_property(rooms, data, key):
+def _apply_energy_property(rooms: List[Room], data: List[Any] | Any, key: str) -> None:
+    """Sets am energy property for input rooms
+
+    Args:
+        rooms (List[Room]): Rooms to modify
+        data (List[Any] | Any): Value to set (one value for all rooms or a list of values matching the rooms)
+        key (str): Attribute to set
+    """
     for i, room in enumerate(rooms):
         data_pt = data[i] \
             if utils.list_len_equal(data, rooms) \
             else data[0]
         setattr(room.properties.energy, key, data_pt)
 
-def _solve_adjacency(rooms):
+def _solve_adjacency(rooms: List[Room]) -> List[Room]:
+    """_summary_
+
+    Args:
+        rooms (List[Room]): _description_
+
+    Returns:
+        List[Room]: _description_
+    """
     adj_rooms = [room.duplicate() for room in rooms]
     adj_info = Room.solve_adjacency(adj_rooms, tolerance)
     # report all of the adjacency information
