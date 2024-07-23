@@ -5,10 +5,12 @@
 # @license AGPL-3.0-or-later <https://spdx.org/licenses/AGPL-3.0-or-later>
 
 """
-Inspired by: 
+Inspired by Ladybug Tools 1.6.0: 
 - HB Intersect Solids
 - HB Room from Solid
 - HB Solve Adjacency
+- HB Guide Surface
+- HB Aperture
 """
 
 from typing import Any, List
@@ -16,7 +18,7 @@ from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message # type: ignore
 import rhinoscriptsyntax as rs
 import os, sys
 import Rhino # type: ignore
-from Rhino.Geometry import Brep # type: ignore
+from Rhino.Geometry import Brep, Surface # type: ignore
 import scriptcontext as sc
 import importlib
 from pathlib import Path
@@ -26,10 +28,13 @@ try:  # import the ladybug_rhino and honeybee dependencies
     # MEGA HACK because something changed in the Rhino API rendering HB useless
     # https://discourse.ladybug.tools/t/ladybug-modules-relying-on-rhino-geometry-collections-seem-not-to-work-in-rhino-8-python-3/25222
     # from ladybug_rhino.togeometry import to_polyface3d
-    from patch_honeybee import to_polyface3d_patched
+    from patch_honeybee import to_polyface3d_patched, to_face3d_patched
 
     from honeybee_energy.constructionset import ConstructionSet
     from honeybee_energy.programtype import ProgramType
+    from honeybee.boundarycondition import boundary_conditions
+    from honeybee.face import Face
+    from honeybee.aperture import Aperture
     
     importlib.reload(sys.modules["patch_honeybee"])
     from ladybug_rhino.grasshopper import document_counter
@@ -67,14 +72,15 @@ def get_results_folder(ghdoc: Any) -> Path:
     sc.doc = ghdoc
     return mpl_folder
 
-def create_hb_model(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType]) -> List[Room]:
+def create_hb_model(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], window_geo: List[Surface]) -> List[Room]:
     """_summary_
 
     Args:
         room_geo (List[Brep]): _description_
         construction_sets (List[ConstructionSet]): _description_
         programs (List[ProgramType]): _description_
-
+        adj_srf (List[Brep]): Breps representing surfaces which should have an adiabatic boundary condition
+        windows (List[Brep]): Window surfaces
     Returns:
         List[Room]: _description_
     """
@@ -83,8 +89,11 @@ def create_hb_model(room_geo: List[Brep], construction_sets: List[ConstructionSe
     rooms = _create_rooms(room_solids, names)
     _apply_energy_property(rooms, construction_sets, "construction_set")
     _apply_energy_property(rooms, programs, "program_type")
-    adj_rooms = _solve_adjacency(rooms)
-    return adj_rooms
+    rooms = _solve_adjacency(rooms)
+    if adj_srf:
+        rooms = _update_boundary_conditions(rooms, adj_srf)
+    apertures = _create_apertures(window_geo)
+    return rooms
 
 def _intersect_room_geometry(room_geo: List[Brep]) -> List[Brep]:
     """_summary_
@@ -137,7 +146,7 @@ def _create_rooms(room_solids: List[Brep], names: List[str]) -> List[Room]:
     return rooms
 
 # hmm, don't like this function mutating the rooms, but it is the HB way
-def _apply_energy_property(rooms: List[Room], data: List[Any] | Any, key: str) -> None:
+def _apply_energy_property(rooms: List[Room], data: Any, key: str) -> None:
     """Sets am energy property for input rooms
 
     Args:
@@ -166,6 +175,49 @@ def _solve_adjacency(rooms: List[Room]) -> List[Room]:
     for adj_face in adj_info['adjacent_faces']:
         print('"{}" is adjacent to "{}"'.format(adj_face[0], adj_face[1]))
     return adj_rooms
+
+def _update_boundary_conditions(rooms: List[Room], adj_srf: List[Brep], bc: str = "Adiabatic") -> List[Room]:
+    """_summary_
+
+    Args:
+        rooms (List[Room]): _description_
+        adj_srf (List[Brep]): surfaces which should have bc
+        bc(str): boundary condition (default: "Adiabatic")
+
+    Returns:
+        List[Room]: _description_
+    """
+    mod_rooms = [room.duplicate() for room in rooms]
+    guide_faces = [g for geo in adj_srf for g in to_face3d_patched(geo)]  # convert to lb geometry
+    for room in mod_rooms:
+        select_faces: List[Face] = room.faces_by_guide_surface(
+            guide_faces, tolerance=tolerance, angle_tolerance=angle_tolerance
+        )
+        for hb_face in select_faces:
+            hb_face.boundary_condition = boundary_conditions.by_name(bc)
+            print(hb_face.boundary_condition)
+    return mod_rooms
+
+def _create_apertures(window_geo: List[Surface]) -> List[Aperture]:
+    """_summary_
+
+    Args:
+        window_geo (List[Surface]): _description_
+
+    Returns:
+        List[Aperture]: _description_
+    """
+    apertures = []
+    name = clean_and_id_string("Aperture")
+    for geo in window_geo:
+        lb_faces = to_face3d_patched(geo)
+        for j, lb_face in enumerate(lb_faces):
+            ap_name = f"{name}_{j}"
+            ap = Aperture(ap_name, lb_face)
+            ap.display_name = ap_name
+            apertures.append(ap)
+    
+    return apertures
 
 class heath_globals:
     version = "0.3.0-dev"

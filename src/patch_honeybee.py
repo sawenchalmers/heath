@@ -8,10 +8,10 @@
 """ This file contains patched Honeybee functions which do not work in Python 3"""
 """ Changed lines from ladybug_rhino.togeometry have a "patched" comment"""
 
-import Rhino.Geometry as rg
+import Rhino.Geometry as rg # type: ignore
 from ladybug_geometry.geometry3d.polyface import Polyface3D
 from ladybug_geometry.geometry3d.face import Face3D
-from ladybug_rhino.togeometry import to_point3d, _remove_dup_verts
+from ladybug_rhino.togeometry import to_point3d, _remove_dup_verts, from_face3ds_to_joined_brep, to_plane
 import ladybug_rhino.planarize as _planar
 from ladybug_rhino.config import tolerance
 
