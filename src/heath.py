@@ -11,8 +11,15 @@ Inspired by Ladybug Tools 1.6.0:
 - HB Solve Adjacency
 - HB Guide Surface
 - HB Aperture
+- HB Apertures by Ratio
+- HB Extruded Border Shades
+- HB Louver Shades
+- HB Add Subface
+- HB Shade
+- HB Model
 """
 
+from dataclasses import dataclass
 from typing import Any, List
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message # type: ignore
 import rhinoscriptsyntax as rs
@@ -24,7 +31,7 @@ import importlib
 from pathlib import Path
 
 try:  # import the ladybug_rhino and honeybee dependencies
-    from ladybug_rhino.config import angle_tolerance, tolerance
+    from ladybug_rhino.config import units_system, angle_tolerance, tolerance
     # MEGA HACK because something changed in the Rhino API rendering HB useless
     # https://discourse.ladybug.tools/t/ladybug-modules-relying-on-rhino-geometry-collections-seem-not-to-work-in-rhino-8-python-3/25222
     # from ladybug_rhino.togeometry import to_polyface3d
@@ -32,16 +39,22 @@ try:  # import the ladybug_rhino and honeybee dependencies
 
     from honeybee_energy.constructionset import ConstructionSet
     from honeybee_energy.programtype import ProgramType
-    from honeybee.boundarycondition import boundary_conditions
+    from honeybee.boundarycondition import boundary_conditions, Outdoors
     from honeybee.face import Face
+    from honeybee.facetype import Wall
     from honeybee.aperture import Aperture
+    from honeybee.model import Model
+    from honeybee.shade import Shade
+    from Rhino.Geometry import MeshingParameters as mp # type: ignore
+    meshing_parameters = mp.FastRenderMesh
     
     importlib.reload(sys.modules["patch_honeybee"])
     from ladybug_rhino.grasshopper import document_counter
     from honeybee.room import Room
-    from honeybee.typing import clean_and_id_string
+    from honeybee.typing import clean_string, clean_and_id_string
     
-    from ladybug_rhino.intersect import bounding_box, intersect_solids 
+    from ladybug_rhino.intersect import bounding_box, intersect_solids
+    from ladybug_geometry.geometry2d.pointvector import Vector2D
 except ImportError as e:
     raise ImportError('\nFailed to import ladybug_rhino:\n\t{}'.format(e))
 
@@ -72,7 +85,7 @@ def get_results_folder(ghdoc: Any) -> Path:
     sc.doc = ghdoc
     return mpl_folder
 
-def create_hb_model(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], window_geo: List[Surface]) -> List[Room]:
+def create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep]) -> List[Room]:
     """_summary_
 
     Args:
@@ -92,7 +105,6 @@ def create_hb_model(room_geo: List[Brep], construction_sets: List[ConstructionSe
     rooms = _solve_adjacency(rooms)
     if adj_srf:
         rooms = _update_boundary_conditions(rooms, adj_srf)
-    apertures = _create_apertures(window_geo)
     return rooms
 
 def _intersect_room_geometry(room_geo: List[Brep]) -> List[Brep]:
@@ -195,10 +207,9 @@ def _update_boundary_conditions(rooms: List[Room], adj_srf: List[Brep], bc: str 
         )
         for hb_face in select_faces:
             hb_face.boundary_condition = boundary_conditions.by_name(bc)
-            print(hb_face.boundary_condition)
     return mod_rooms
 
-def _create_apertures(window_geo: List[Surface]) -> List[Aperture]:
+def create_hb_apertures(window_geo: List[Surface]) -> List[Aperture]:
     """_summary_
 
     Args:
@@ -219,8 +230,159 @@ def _create_apertures(window_geo: List[Surface]) -> List[Aperture]:
     
     return apertures
 
+@dataclass
+class WindowSettings():
+    window_wall_ratio: float
+    window_height: float
+    sill_height: float
+    horizontal_separation: float
+    wall_thickness: float
+
+def auto_hb_apertures(rooms: List[Room], window_wall_ratio: float, window_height: float, sill_height: float, horizontal_separation: float) -> List[Aperture]:
+    """_summary_
+
+    Args:
+        window_wall_ratio (float): _description_
+        window_height (float): _description_
+        sill_height (float): _description_
+        horizontal_separation (float): _description_
+
+    Returns:
+        List[Aperture]: _description_
+    """
+
+    window_height = 2.0 if window_height is None else window_height
+    sill_height = 0.8 if sill_height is None else sill_height
+    horizontal_separation = 3.0 if horizontal_separation is None else horizontal_separation
+        
+    apertures = []
+    for room in rooms:
+        face: Face
+        for face in room.faces:
+            if isinstance(face.boundary_condition, Outdoors) and isinstance(face.type, Wall):
+                face.apertures_by_ratio_rectangle(window_wall_ratio, window_height, sill_height, horizontal_separation)
+                apertures.extend(face.apertures)
+    return apertures
+
+def add_border_shades(apertures: List[Aperture], depth: float) -> List[Aperture]:
+    """_summary_
+
+    Args:
+        apertures (List[Aperture]): _description_
+        depth (float): _description_
+
+    Returns:
+        List[Aperture]: _description_
+    """
+    apertures = [apt.duplicate() for apt in apertures]
+    for apt in apertures:
+        if isinstance(apt.boundary_condition, Outdoors):
+            apt.extruded_border(depth)
+    return apertures
+
+@dataclass
+class LouverSettings():
+    depth: float
+    count: int
+    dist: float
+    angle: float
+    direction: bool
+
+def add_louver_shades(apertures: List[Aperture], depth: float, count: int, dist: float, angle: float, direction: bool) -> List[Aperture]:
+    """_summary_
+
+    Args:
+        apertures (List[Aperture]): _description_
+        depth (float): _description_
+        count (int): _description_
+        dist (float): _description_
+        angle (float): _description_
+        direction (bool): _description_
+
+    Returns:
+        List[Aperture]: _description_
+    """
+    vec = Vector2D(*((1,0) if direction else (0, 1)))
+
+    apertures = [apt.duplicate() for apt in apertures]
+    for apt in apertures:
+        if not dist:
+            louvers = apt.louvers_by_count(count, depth, 0, angle, vec)
+        else:
+            louvers = apt.louvers_by_distance_between(dist, depth, 0, angle, vec, max_count=count)
+    
+    return apertures
+
+def add_subfaces(rooms: List[Room], apertures: List[Aperture]) -> List[Room]:
+    """_summary_
+
+    Args:
+        rooms (List[Room]): _description_
+        apertures (List[Aperture]): _description_
+
+    Returns:
+        List[Room]: _description_
+    """
+    rooms = [r.duplicate() for r in rooms]
+    apertures = [a.duplicate() for a in apertures]
+
+    apt_ids = [apt.identifier for apt in apertures]
+    added_ids = set()
+
+    for room in rooms:
+        face: Face
+        for face in room.faces:
+            for i, apt in enumerate(apertures):
+                if face.geometry.is_sub_face(apt.geometry, tolerance, angle_tolerance):
+                    if apt.identifier in added_ids:
+                        apt = apt.duplicate()
+                        apt.add_prefix("Ajd") # no idea what this is
+                    added_ids.add(apt.identifier)
+                    apt_ids[i] = None
+                    face.add_aperture(apt)
+
+    unmatched_ids = [apt_id for apt_id in apt_ids if apt_id is not None]
+    if len(unmatched_ids):
+        msg = f"The following sub-faces were not matched with any parent Face:{', '.join(unmatched_ids)}"
+        utils.warn(ghenv, msg) # type: ignore
+
+    return rooms
+
+def add_shades(geo_list: List[Brep]) -> List[Shade]:
+    """_summary_
+
+    Args:
+        geo (List[Brep]): _description_
+
+    Returns:
+        List[Shade]: _description_
+    """
+    shades = []
+    for i, geo in enumerate(geo_list):
+        name = clean_and_id_string("Shade")
+        faces = to_face3d_patched(geo, meshing_parameters)
+        for j, face in enumerate(faces):
+            shd_name = f"{name}_{i}"
+            shd = Shade(shd_name, face, False)
+            shd.display_name = shd_name
+            shades.append(shd)
+    return shades
+
+
+def create_hb_model(name: str, rooms: List[Room], apertures: List[Aperture], shades: List[Shade]) -> Model:
+    """_summary_
+
+    Args:
+        rooms (List[Room]): _description_
+        apertures (List[Aperture]): _description_
+
+    Returns:
+        Model: _description_
+    """
+    return Model(clean_string(name), rooms, None, shades, apertures, None, None, units_system(), tolerance, angle_tolerance)
+
 class heath_globals:
-    version = "0.3.0-dev"
+    version = "0.4.0-dev"
     results_folder = "results"
 
 class utils:
