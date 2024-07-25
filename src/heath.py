@@ -17,9 +17,11 @@ Inspired by Ladybug Tools 1.6.0:
 - HB Add Subface
 - HB Shade
 - HB Model
+- HB HeatCool HVAC
 """
 
 from dataclasses import dataclass
+import json
 from typing import Any, List
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message # type: ignore
 import rhinoscriptsyntax as rs
@@ -30,16 +32,19 @@ import scriptcontext as sc
 import importlib
 from pathlib import Path
 
+from patch_honeybee import to_polyface3d_patched, to_face3d_patched
+
 try:  # import the ladybug_rhino and honeybee dependencies
     from ladybug_rhino.config import units_system, angle_tolerance, tolerance
     # MEGA HACK because something changed in the Rhino API rendering HB useless
     # https://discourse.ladybug.tools/t/ladybug-modules-relying-on-rhino-geometry-collections-seem-not-to-work-in-rhino-8-python-3/25222
     # from ladybug_rhino.togeometry import to_polyface3d
-    from patch_honeybee import to_polyface3d_patched, to_face3d_patched
 
     from honeybee_energy.constructionset import ConstructionSet
     from honeybee_energy.programtype import ProgramType
     from honeybee.boundarycondition import boundary_conditions, Outdoors
+    from honeybee_energy.hvac.heatcool import EQUIPMENT_TYPES_DICT
+    from honeybee_energy.config import folders as hb_energy_config_folders
     from honeybee.face import Face
     from honeybee.facetype import Wall
     from honeybee.aperture import Aperture
@@ -51,7 +56,7 @@ try:  # import the ladybug_rhino and honeybee dependencies
     importlib.reload(sys.modules["patch_honeybee"])
     from ladybug_rhino.grasshopper import document_counter
     from honeybee.room import Room
-    from honeybee.typing import clean_string, clean_and_id_string
+    from honeybee.typing import clean_string, clean_and_id_string, clean_and_id_ep_string
     
     from ladybug_rhino.intersect import bounding_box, intersect_solids
     from ladybug_geometry.geometry2d.pointvector import Vector2D
@@ -85,7 +90,7 @@ def get_results_folder(ghdoc: Any) -> Path:
     sc.doc = ghdoc
     return mpl_folder
 
-def create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep]) -> List[Room]:
+def create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], energy_systems: List[str]) -> List[Room]:
     """_summary_
 
     Args:
@@ -105,6 +110,9 @@ def create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSe
     rooms = _solve_adjacency(rooms)
     if adj_srf:
         rooms = _update_boundary_conditions(rooms, adj_srf)
+    if energy_systems:
+        rooms = _set_energy_systems(rooms, energy_systems)
+    
     return rooms
 
 def _intersect_room_geometry(room_geo: List[Brep]) -> List[Brep]:
@@ -157,15 +165,15 @@ def _create_rooms(room_solids: List[Brep], names: List[str]) -> List[Room]:
         rooms.append(room)
     return rooms
 
-# hmm, don't like this function mutating the rooms, but it is the HB way
 def _apply_energy_property(rooms: List[Room], data: Any, key: str) -> None:
-    """Sets am energy property for input rooms
+    """Sets an energy property for input rooms
 
     Args:
         rooms (List[Room]): Rooms to modify
         data (List[Any] | Any): Value to set (one value for all rooms or a list of values matching the rooms)
         key (str): Attribute to set
     """
+    rooms = [room.duplicate() for room in rooms]
     for i, room in enumerate(rooms):
         data_pt = data[i] \
             if utils.list_len_equal(data, rooms) \
@@ -208,6 +216,45 @@ def _update_boundary_conditions(rooms: List[Room], adj_srf: List[Brep], bc: str 
         for hb_face in select_faces:
             hb_face.boundary_condition = boundary_conditions.by_name(bc)
     return mod_rooms
+
+def _set_energy_systems(rooms: List[Room], energy_system_ids: List[str]) -> List[Room]:
+    """_summary_
+
+    Args:
+        rooms (List[Room]): _description_
+        energy_system_ids (List[str]): _description_
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        List[Room]: _description_
+    """
+    rooms = [room.duplicate() for room in rooms]
+    
+    # dictionary of HVAC template names
+    ext_folder = hb_energy_config_folders.standards_extension_folders[0]
+    hvac_reg = os.path.join(ext_folder, 'hvac_registry.json')
+    with open(hvac_reg, 'r') as f:
+        hvac_dict = json.load(f)
+
+        for i, room in enumerate(rooms):
+            system_type = energy_system_ids[i] if len(rooms) == len(energy_system_ids) else energy_system_ids[0]
+            # process any input properties for the HVAC system
+            try:  # get the class for the HVAC system
+                try:
+                    sys_id = hvac_dict[system_type]
+                except KeyError:
+                    sys_id = system_type
+            except KeyError:
+                raise ValueError('System Type "{}" is not recognized as a HeatCool HVAC '
+                    'system.'.format(system_type))
+            if room.properties.energy.is_conditioned:
+                name = clean_and_id_ep_string('Heat-Cool HVAC')
+                hvac_class = EQUIPMENT_TYPES_DICT[sys_id]
+                hvac = hvac_class(name, "ASHRAE_2019", sys_id)
+                room.properties.energy.hvac = hvac
+    return rooms
 
 def create_hb_apertures(window_geo: List[Surface]) -> List[Aperture]:
     """_summary_
