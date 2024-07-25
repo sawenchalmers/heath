@@ -53,9 +53,15 @@ This Grasshopper plugin provides a UI for life cycle building performance assess
 ## Contact
 
 Author: Toivo Säwén, sawen@chalmers.se
+
 Contributors: Isac Mjörnell, misac@chalmers.se, Jieming Yan, jieming@chalmers.se
 
 ## Changelog
+
+### 0.4.0
+
+* Back-end updates
+* New logo celebration!
 
 ### 0.3.0
 
