@@ -15,6 +15,10 @@ from ladybug_rhino.togeometry import to_point3d, _remove_dup_verts, from_face3ds
 import ladybug_rhino.planarize as _planar
 from ladybug_rhino.config import tolerance
 
+import sys
+if (sys.version_info > (3, 0)):  # python 3
+    xrange = range
+
 def to_polyface3d_patched(geo, meshing_parameters=None):
     """A Ladybug Polyface3D object from a Rhino Brep.
 
@@ -85,7 +89,7 @@ def to_face3d_patched(geo, meshing_parameters=None):
                     success, loop_pline = \
                         b_face.Loops[count].To3dCurve().TryGetPolyline() # patched
                     if not success:  # Failed to get a polyline; there's a curved edge
-                        loop_verts = _planar.planar_face_curved_edge_vertices(
+                        loop_verts = planar_face_curved_edge_vertices_patched(
                             b_face, count, meshing_parameters)
                     else:  # we have a polyline representing the loop
                         loop_verts = tuple(to_point3d(loop_pline[i]) # patched
@@ -101,3 +105,46 @@ def to_face3d_patched(geo, meshing_parameters=None):
             else:  # curved face must be meshed into planar Face3D objects
                 faces.extend(_planar.curved_surface_faces(b_face, meshing_parameters))
     return faces
+
+
+def planar_face_curved_edge_vertices_patched(b_face, count, meshing_parameters):
+    """Extract vertices from a planar brep face loop that has one or more curved edges.
+
+    This method ensures vertices along the curved edge are generated in a way that
+    they align with an extrusion of that edge. Alignment may not be possible when
+    the adjoining curved surface is not an extrusion.
+
+    Args:
+        b_face: A brep face with the curved edge.
+        count: An integer for the index of the loop to extract.
+        meshing_parameters: Rhino Meshing Parameters to describe how
+            curved edge should be converted into planar elements.
+
+    Returns:
+        A list of ladybug Point3D objects representing the input planar face.
+    """
+    loop_pcrv = b_face.Loops[count].To3dCurve() # patched
+    f_norm = b_face.NormalAt(0, 0)
+    if f_norm.Z < 0:
+        loop_pcrv.Reverse()
+    loop_verts = []
+    try:
+        loop_pcrvs = [loop_pcrv.SegmentCurve(i)
+                      for i in xrange(loop_pcrv.SegmentCount)]
+    except Exception:
+        try:
+            loop_pcrvs = [loop_pcrv[0]]
+        except Exception:
+            loop_pcrvs = [loop_pcrv]
+    for seg in loop_pcrvs:
+        if seg.Degree == 1:
+            loop_verts.append(_planar._point3d(seg.PointAtStart))
+        else:
+            # Ensure curve subdivisions align with adjacent curved faces
+            seg_mesh = rg.Mesh.CreateFromSurface(
+                rg.Surface.CreateExtrusion(seg, f_norm*0.01), #patched to handle surfaces smaller than 1m
+                meshing_parameters)
+            
+            for i in xrange(int(seg_mesh.Vertices.Count / 2 - 1)): # patched
+                loop_verts.append(_planar._point3d(seg_mesh.Vertices[i]))
+    return loop_verts
