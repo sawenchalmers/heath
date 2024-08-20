@@ -311,7 +311,7 @@ def auto_hb_apertures(rooms: List[Room], window_wall_ratio: float, window_height
                 apertures.extend(face.apertures)
     return apertures
 
-def add_border_shades(apertures: List[Aperture], depth: float) -> List[Aperture]:
+def add_border_shades(apt: Aperture, depth: float) -> List[Aperture]:
     """_summary_
 
     Args:
@@ -321,11 +321,9 @@ def add_border_shades(apertures: List[Aperture], depth: float) -> List[Aperture]
     Returns:
         List[Aperture]: _description_
     """
-    apertures = [apt.duplicate() for apt in apertures]
-    for apt in apertures:
-        if isinstance(apt.boundary_condition, Outdoors):
-            apt.extruded_border(depth)
-    return apertures
+    if isinstance(apt.boundary_condition, Outdoors):
+        apt.extruded_border(depth)
+    return apt
 
 @dataclass
 class LouverSettings():
@@ -335,7 +333,7 @@ class LouverSettings():
     angle: float
     direction: bool
 
-def add_louver_shades(apertures: List[Aperture], depth: float, count: int, dist: float, angle: float, direction: bool) -> List[Aperture]:
+def add_louver_shades(apt: Aperture, depth: float, count: int, dist: float, angle: float, direction: bool) -> List[Aperture]:
     """_summary_
 
     Args:
@@ -351,16 +349,14 @@ def add_louver_shades(apertures: List[Aperture], depth: float, count: int, dist:
     """
     vec = Vector2D(*((1,0) if direction else (0, 1)))
 
-    apertures = [apt.duplicate() for apt in apertures]
-    for apt in apertures:
-        if not dist:
-            louvers = apt.louvers_by_count(count, depth, 0, angle, vec)
-        else:
-            louvers = apt.louvers_by_distance_between(dist, depth, 0, angle, vec, max_count=count)
+    if not dist:
+        louvers = apt.louvers_by_count(count, depth, 0, angle, vec)
+    else:
+        louvers = apt.louvers_by_distance_between(dist, depth, 0, angle, vec, max_count=count)
     
-    return apertures
+    return apt
 
-def add_subfaces(rooms: List[Room], apertures: List[Aperture]) -> List[Room]:
+def add_subfaces(rooms: List[Room], apertures: List[Aperture], window_settings: WindowSettings, louver_settings: LouverSettings ) -> List[Room]:
     """_summary_
 
     Args:
@@ -372,7 +368,7 @@ def add_subfaces(rooms: List[Room], apertures: List[Aperture]) -> List[Room]:
     """
     rooms = [r.duplicate() for r in rooms]
     apertures = [a.duplicate() for a in apertures]
-
+    
     apt_ids = [apt.identifier for apt in apertures]
     added_ids = set()
 
@@ -386,7 +382,13 @@ def add_subfaces(rooms: List[Room], apertures: List[Aperture]) -> List[Room]:
                         apt.add_prefix("Ajd") # no idea what this is
                     added_ids.add(apt.identifier)
                     apt_ids[i] = None
+                    
                     face.add_aperture(apt)
+            for apt in face.apertures:
+                add_border_shades(apt, window_settings.wall_thickness)
+                if louver_settings:
+                    ls = louver_settings
+                    add_louver_shades(apt, ls.depth, ls.count, ls.dist, ls.angle, ls.direction)
 
     unmatched_ids = [apt_id for apt_id in apt_ids if apt_id is not None]
     if len(unmatched_ids):
