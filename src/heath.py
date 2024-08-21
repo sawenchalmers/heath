@@ -22,7 +22,7 @@ Inspired by Ladybug Tools 1.6.0:
 
 from dataclasses import dataclass
 import json
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message # type: ignore
 import rhinoscriptsyntax as rs
 import os, sys
@@ -90,7 +90,51 @@ def get_results_folder(ghdoc: Any) -> Path:
     sc.doc = ghdoc
     return mpl_folder
 
-def create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], energy_systems: List[str]) -> List[Room]:
+@dataclass
+class WindowSettings():
+    window_wall_ratio: float
+    window_height: float
+    sill_height: float
+    horizontal_separation: float
+    wall_thickness: float
+    
+@dataclass
+class LouverSettings():
+    depth: float
+    count: int
+    dist: float
+    angle: float
+    direction: bool
+
+def create_hb_model(
+        room_geo: List[Brep],
+        construction_sets: List[ConstructionSet],
+        programs: List[ProgramType],
+        adj_srf: List[Brep],
+        energy_systems: List[str],
+        window_geo: List[Surface],
+        window_settings: Optional[WindowSettings],
+        louver_settings: Optional[LouverSettings],
+        context_geo: List[Brep],
+        model_name: str,
+    ) -> Model:
+
+    rooms = _create_hb_rooms(room_geo, construction_sets, programs, adj_srf, energy_systems)
+    if window_geo:
+        apertures = _create_hb_apertures(window_geo)
+    elif window_settings:
+        ws = window_settings
+        apertures = auto_hb_apertures(rooms, ws.window_wall_ratio, ws.window_height, ws.sill_height, ws.horizontal_separation)
+    else:
+        raise Exception("Either window geo or window settings are required inputs")
+
+    rooms = _add_subfaces(rooms, apertures, window_settings, louver_settings)
+
+    context = _add_shades(context_geo) if (context_geo) else []
+    hb_model = _generate_hb_model(model_name, rooms, None, context)
+    return hb_model
+
+def _create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], energy_systems: List[str]) -> List[Room]:
     """_summary_
 
     Args:
@@ -256,7 +300,7 @@ def _set_energy_systems(rooms: List[Room], energy_system_ids: List[str]) -> List
                 room.properties.energy.hvac = hvac
     return rooms
 
-def create_hb_apertures(window_geo: List[Surface]) -> List[Aperture]:
+def _create_hb_apertures(window_geo: List[Surface]) -> List[Aperture]:
     """_summary_
 
     Args:
@@ -277,13 +321,6 @@ def create_hb_apertures(window_geo: List[Surface]) -> List[Aperture]:
     
     return apertures
 
-@dataclass
-class WindowSettings():
-    window_wall_ratio: float
-    window_height: float
-    sill_height: float
-    horizontal_separation: float
-    wall_thickness: float
 
 def auto_hb_apertures(rooms: List[Room], window_wall_ratio: float, window_height: float, sill_height: float, horizontal_separation: float) -> List[Aperture]:
     """_summary_
@@ -311,7 +348,7 @@ def auto_hb_apertures(rooms: List[Room], window_wall_ratio: float, window_height
                 apertures.extend(face.apertures)
     return apertures
 
-def add_border_shades(apt: Aperture, depth: float) -> List[Aperture]:
+def _add_border_shades(apt: Aperture, depth: float) -> List[Aperture]:
     """_summary_
 
     Args:
@@ -325,15 +362,7 @@ def add_border_shades(apt: Aperture, depth: float) -> List[Aperture]:
         apt.extruded_border(depth)
     return apt
 
-@dataclass
-class LouverSettings():
-    depth: float
-    count: int
-    dist: float
-    angle: float
-    direction: bool
-
-def add_louver_shades(apt: Aperture, depth: float, count: int, dist: float, angle: float, direction: bool) -> List[Aperture]:
+def _add_louver_shades(apt: Aperture, depth: float, count: int, dist: float, angle: float, direction: bool) -> List[Aperture]:
     """_summary_
 
     Args:
@@ -356,7 +385,7 @@ def add_louver_shades(apt: Aperture, depth: float, count: int, dist: float, angl
     
     return apt
 
-def add_subfaces(rooms: List[Room], apertures: List[Aperture], window_settings: WindowSettings, louver_settings: LouverSettings ) -> List[Room]:
+def _add_subfaces(rooms: List[Room], apertures: List[Aperture], window_settings: WindowSettings, louver_settings: LouverSettings ) -> List[Room]:
     """_summary_
 
     Args:
@@ -385,10 +414,10 @@ def add_subfaces(rooms: List[Room], apertures: List[Aperture], window_settings: 
                     
                     face.add_aperture(apt)
             for apt in face.apertures:
-                add_border_shades(apt, window_settings.wall_thickness)
+                _add_border_shades(apt, window_settings.wall_thickness)
                 if louver_settings:
                     ls = louver_settings
-                    add_louver_shades(apt, ls.depth, ls.count, ls.dist, ls.angle, ls.direction)
+                    _add_louver_shades(apt, ls.depth, ls.count, ls.dist, ls.angle, ls.direction)
 
     unmatched_ids = [apt_id for apt_id in apt_ids if apt_id is not None]
     if len(unmatched_ids):
@@ -397,7 +426,7 @@ def add_subfaces(rooms: List[Room], apertures: List[Aperture], window_settings: 
 
     return rooms
 
-def add_shades(geo_list: List[Brep]) -> List[Shade]:
+def _add_shades(geo_list: List[Brep]) -> List[Shade]:
     """_summary_
 
     Args:
@@ -417,8 +446,7 @@ def add_shades(geo_list: List[Brep]) -> List[Shade]:
             shades.append(shd)
     return shades
 
-
-def create_hb_model(name: str, rooms: List[Room], apertures: List[Aperture], shades: List[Shade]) -> Model:
+def _generate_hb_model(name: str, rooms: List[Room], apertures: List[Aperture], shades: List[Shade]) -> Model:
     """_summary_
 
     Args:
@@ -447,3 +475,14 @@ class utils:
     @staticmethod
     def replace_null(value, default):
         return value if value is not None else default
+    
+    def jsonify(dict: Dict[Any, Any]) -> str:
+        """_summary_
+
+        Args:
+            dict (Any): _description_
+
+        Returns:
+            str: _description_
+        """
+        return json.dumps(dict)
