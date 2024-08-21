@@ -22,12 +22,12 @@ Inspired by Ladybug Tools 1.6.0:
 
 from dataclasses import dataclass
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message # type: ignore
 import rhinoscriptsyntax as rs
 import os, sys
 import Rhino # type: ignore
-from Rhino.Geometry import Brep, Surface # type: ignore
+from Rhino.Geometry import Brep, Surface, Mesh # type: ignore
 import scriptcontext as sc
 import importlib
 from pathlib import Path
@@ -107,6 +107,7 @@ class LouverSettings():
     direction: bool
 
 def create_hb_model(
+        ghenv: Any, # RhinoCodePlatform.Rhino3D.GH1.Legacy.ProxyScriptEnv,
         room_geo: List[Brep],
         construction_sets: List[ConstructionSet],
         programs: List[ProgramType],
@@ -115,7 +116,7 @@ def create_hb_model(
         window_geo: List[Surface],
         window_settings: Optional[WindowSettings],
         louver_settings: Optional[LouverSettings],
-        context_geo: List[Brep],
+        context_geo: List[Union[Mesh, Brep]],
         model_name: str,
     ) -> Model:
 
@@ -124,7 +125,7 @@ def create_hb_model(
         apertures = _create_hb_apertures(window_geo)
     elif window_settings:
         ws = window_settings
-        apertures = auto_hb_apertures(rooms, ws.window_wall_ratio, ws.window_height, ws.sill_height, ws.horizontal_separation)
+        apertures = _auto_hb_apertures(rooms, ws.window_wall_ratio, ws.window_height, ws.sill_height, ws.horizontal_separation)
     else:
         raise Exception("Either window geo or window settings are required inputs")
 
@@ -322,7 +323,7 @@ def _create_hb_apertures(window_geo: List[Surface]) -> List[Aperture]:
     return apertures
 
 
-def auto_hb_apertures(rooms: List[Room], window_wall_ratio: float, window_height: float, sill_height: float, horizontal_separation: float) -> List[Aperture]:
+def _auto_hb_apertures(rooms: List[Room], window_wall_ratio: float, window_height: float, sill_height: float, horizontal_separation: float) -> List[Aperture]:
     """_summary_
 
     Args:
@@ -426,7 +427,7 @@ def _add_subfaces(rooms: List[Room], apertures: List[Aperture], window_settings:
 
     return rooms
 
-def _add_shades(geo_list: List[Brep]) -> List[Shade]:
+def _add_shades(geo_list: List[Union[Mesh, Brep]]) -> List[Shade]:
     """_summary_
 
     Args:
