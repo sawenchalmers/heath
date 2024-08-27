@@ -123,13 +123,14 @@ def create_hb_model(
     rooms = _create_hb_rooms(room_geo, construction_sets, programs, adj_srf, energy_systems)
     if window_geo:
         apertures = _create_hb_apertures(window_geo)
+        rooms = _add_subfaces(rooms, apertures)
     elif window_settings:
         ws = window_settings
         apertures = _auto_hb_apertures(rooms, ws.window_wall_ratio, ws.window_height, ws.sill_height, ws.horizontal_separation)
     else:
         raise Exception("Either window geo or window settings are required inputs")
 
-    rooms = _add_subfaces(rooms, apertures, window_settings, louver_settings)
+    rooms = _add_window_shades(rooms, window_settings, louver_settings)
 
     context = _add_shades(context_geo) if (context_geo) else []
     hb_model = _generate_hb_model(model_name, rooms, None, context)
@@ -386,7 +387,7 @@ def _add_louver_shades(apt: Aperture, depth: float, count: int, dist: float, ang
     
     return apt
 
-def _add_subfaces(rooms: List[Room], apertures: List[Aperture], window_settings: WindowSettings, louver_settings: LouverSettings ) -> List[Room]:
+def _add_subfaces(rooms: List[Room], apertures: List[Aperture]) -> List[Room]:
     """_summary_
 
     Args:
@@ -414,17 +415,34 @@ def _add_subfaces(rooms: List[Room], apertures: List[Aperture], window_settings:
                     apt_ids[i] = None
                     
                     face.add_aperture(apt)
-            for apt in face.apertures:
-                _add_border_shades(apt, window_settings.wall_thickness)
-                if louver_settings:
-                    ls = louver_settings
-                    _add_louver_shades(apt, ls.depth, ls.count, ls.dist, ls.angle, ls.direction)
 
     unmatched_ids = [apt_id for apt_id in apt_ids if apt_id is not None]
     if len(unmatched_ids):
         msg = f"The following sub-faces were not matched with any parent Face:{', '.join(unmatched_ids)}"
         utils.warn(ghenv, msg) # type: ignore
 
+    return rooms
+
+def _add_window_shades(rooms: List[Room], window_settings: WindowSettings, louver_settings: LouverSettings ) -> List[Room]:
+    """_summary_
+
+    Args:
+        rooms (List[Room]): _description_
+        window_settings (WindowSettings): _description_
+        louver_settings (LouverSettings): _description_
+
+    Returns:
+        List[Room]: _description_
+    """
+    rooms = [r.duplicate() for r in rooms]
+    for room in rooms:
+        face: Face
+        for face in room.faces:
+            for apt in face.apertures:
+                _add_border_shades(apt, window_settings.wall_thickness)
+                if louver_settings:
+                    ls = louver_settings
+                    _add_louver_shades(apt, ls.depth, ls.count, ls.dist, ls.angle, ls.direction)
     return rooms
 
 def _add_shades(geo_list: List[Union[Mesh, Brep]]) -> List[Shade]:
