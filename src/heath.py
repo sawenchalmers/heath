@@ -56,6 +56,7 @@ try:  # import the ladybug_rhino and honeybee dependencies
     importlib.reload(sys.modules["patch_honeybee"])
     from ladybug_rhino.grasshopper import document_counter
     from honeybee.room import Room
+    from honeybee_energy.properties.room import RoomEnergyProperties
     from honeybee.typing import clean_string, clean_and_id_string, clean_and_id_ep_string
     
     from ladybug_rhino.intersect import bounding_box, intersect_solids
@@ -151,8 +152,8 @@ def _create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionS
     room_solids = _intersect_room_geometry(room_geo)
     names = [] # todo: allow room names as input
     rooms = _create_rooms(room_solids, names)
-    _apply_energy_property(rooms, construction_sets, "construction_set")
-    _apply_energy_property(rooms, programs, "program_type")
+    _apply_energy_property(rooms, construction_sets, "construction_set", mutate=True)
+    _apply_energy_property(rooms, programs, "program_type", mutate=True)
     rooms = _solve_adjacency(rooms)
     if adj_srf:
         rooms = _update_boundary_conditions(rooms, adj_srf)
@@ -211,7 +212,7 @@ def _create_rooms(room_solids: List[Brep], names: List[str]) -> List[Room]:
         rooms.append(room)
     return rooms
 
-def _apply_energy_property(rooms: List[Room], data: Any, key: str) -> None:
+def _apply_energy_property(rooms: List[Room], data: Any, key: str, mutate: bool = False) -> List[Room]:
     """Sets an energy property for input rooms
 
     Args:
@@ -219,12 +220,14 @@ def _apply_energy_property(rooms: List[Room], data: Any, key: str) -> None:
         data (List[Any] | Any): Value to set (one value for all rooms or a list of values matching the rooms)
         key (str): Attribute to set
     """
-    rooms = [room.duplicate() for room in rooms]
+    if not mutate:
+        rooms = [room.duplicate() for room in rooms]
     for i, room in enumerate(rooms):
         data_pt = data[i] \
             if utils.list_len_equal(data, rooms) \
             else data[0]
         setattr(room.properties.energy, key, data_pt)
+    return rooms
 
 def _solve_adjacency(rooms: List[Room]) -> List[Room]:
     """_summary_
@@ -283,8 +286,11 @@ def _set_energy_systems(rooms: List[Room], energy_system_ids: List[str]) -> List
     hvac_reg = os.path.join(ext_folder, 'hvac_registry.json')
     with open(hvac_reg, 'r') as f:
         hvac_dict = json.load(f)
-
         for i, room in enumerate(rooms):
+            
+            rpe: RoomEnergyProperties = room.properties.energy
+            rpe.add_default_ideal_air()
+
             system_type = energy_system_ids[i] if len(rooms) == len(energy_system_ids) else energy_system_ids[0]
             # process any input properties for the HVAC system
             try:  # get the class for the HVAC system
@@ -295,11 +301,11 @@ def _set_energy_systems(rooms: List[Room], energy_system_ids: List[str]) -> List
             except KeyError:
                 raise ValueError('System Type "{}" is not recognized as a HeatCool HVAC '
                     'system.'.format(system_type))
-            if room.properties.energy.is_conditioned:
-                name = clean_and_id_ep_string('Heat-Cool HVAC')
-                hvac_class = EQUIPMENT_TYPES_DICT[sys_id]
-                hvac = hvac_class(name, "ASHRAE_2019", sys_id)
-                room.properties.energy.hvac = hvac
+            
+            name = clean_and_id_ep_string('Heat-Cool HVAC')
+            hvac_class = EQUIPMENT_TYPES_DICT[sys_id]
+            hvac = hvac_class(name, "ASHRAE_2019", sys_id)
+            rpe.hvac = hvac
     return rooms
 
 def _create_hb_apertures(window_geo: List[Surface]) -> List[Aperture]:
