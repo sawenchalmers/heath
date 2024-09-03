@@ -8,6 +8,7 @@
 """ This file contains patched Honeybee functions which do not work in Python 3"""
 """ Changed lines from ladybug_rhino.togeometry have a "patched" comment"""
 
+from typing import List
 import Rhino.Geometry as rg # type: ignore
 from ladybug_geometry.geometry3d.polyface import Polyface3D
 from ladybug_geometry.geometry3d.face import Face3D
@@ -41,7 +42,7 @@ def to_polyface3d_patched(geo, meshing_parameters=None):
     return Polyface3D.from_faces(to_face3d_patched(geo, mesh_par), tolerance)
 
 
-def to_face3d_patched(geo, meshing_parameters=None):
+def to_face3d_patched(geo, meshing_parameters=None) -> List[Face3D]:
     """List of Ladybug Face3D objects from a Rhino Brep, Surface or Mesh.
 
     Args:

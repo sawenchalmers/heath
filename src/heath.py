@@ -61,6 +61,7 @@ try:  # import the ladybug_rhino and honeybee dependencies
     
     from ladybug_rhino.intersect import bounding_box, intersect_solids
     from ladybug_geometry.geometry2d.pointvector import Vector2D
+    from ladybug_geometry.geometry3d.face import Face3D
 except ImportError as e:
     raise ImportError('\nFailed to import ladybug_rhino:\n\t{}'.format(e))
 
@@ -135,6 +136,7 @@ def create_hb_model(
 
     context = _add_shades(context_geo) if (context_geo) else []
     hb_model = _generate_hb_model(model_name, rooms, None, context)
+
     return hb_model
 
 def _create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], energy_systems: List[str]) -> List[Room]:
@@ -318,8 +320,9 @@ def _create_hb_apertures(window_geo: List[Surface]) -> List[Aperture]:
         List[Aperture]: _description_
     """
     apertures = []
-    name = clean_and_id_string("Aperture")
+    
     for geo in window_geo:
+        name = clean_and_id_string("Aperture")
         lb_faces = to_face3d_patched(geo)
         for j, lb_face in enumerate(lb_faces):
             ap_name = f"{name}_{j}"
@@ -374,7 +377,7 @@ def _add_louver_shades(apt: Aperture, depth: float, count: int, dist: float, ang
     """_summary_
 
     Args:
-        apertures (List[Aperture]): _description_
+        apt (Aperture): _description_
         depth (float): _description_
         count (int): _description_
         dist (float): _description_
@@ -384,8 +387,7 @@ def _add_louver_shades(apt: Aperture, depth: float, count: int, dist: float, ang
     Returns:
         List[Aperture]: _description_
     """
-    vec = Vector2D(*((1,0) if direction else (0, 1)))
-
+    vec = Vector2D(*((1,0) if not direction else (0, 1)))
     if not dist:
         louvers = apt.louvers_by_count(count, depth, 0, angle, vec)
     else:
