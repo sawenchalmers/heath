@@ -486,7 +486,7 @@ def _generate_hb_model(name: str, rooms: List[Room], apertures: List[Aperture], 
     return Model(clean_string(name), rooms, None, shades, apertures, None, None, units_system(), tolerance, angle_tolerance)
 
 class heath_globals:
-    version = "0.5.0-dev"
+    version = "0.6.1"
     results_folder = "results"
 
 class utils:

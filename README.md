@@ -18,6 +18,8 @@ This Grasshopper plugin provides a UI for life cycle building performance assess
 * /test - contains testing files
 
 ### Releasing a new version
+* Update heath_globals.version in src/heath.py
+* Update current_gh_version input of "Heath - Fly!" component in .gh model
 
 ### Git usage (general)
 * `git add .` to add all changes made
@@ -57,6 +59,11 @@ Author: Toivo Säwén, sawen@chalmers.se
 Contributors: Isac Mjörnell, misac@chalmers.se, Jieming Yan, jieming@chalmers.se
 
 ## Changelog
+
+### 0.6.0
+* Major changes to UI and added features
+
+### 0.5.0
 
 ### 0.4.0
 
