@@ -2,6 +2,28 @@
 
 This Grasshopper plugin provides a UI for life cycle building performance assessment in the Rhino environment. The plugin is not yet [available on Food4Rhino, but its sister app Brimstone is](https://www.food4rhino.com/en/app/brimstone?lang=en).
 
+## Installation instructions
+Dependencies:
+- HumanUI
+- Human
+- eleFront
+- Telepathy
+- Heteroptera
+- Wombat
+- MetaHopper
+ 
+1. Copy and paste the following file and folders to the Grasshopper User Object* folder:
+- heath, (folder)
+- brimstone_data, (folder)
+- brimstone.py, (file)
+2. Save the Rhino file before launching Heath.
+3. Open Heath through Grasshopper. 
+4. If you don't have all the plug-ins, just click download. Mathplotlib, numpy and other python packages will be installed automatically the first time the file is opened.
+
+*The User Object folder can be accessed in Grasshopper through:
+File -> Special Folders -> User Object Folder
+or at: `C:\Users\[your name]\AppData\Roaming\Grasshopper\UserObjects`
+
 ## Features
 * N/A
 
@@ -56,7 +78,7 @@ This Grasshopper plugin provides a UI for life cycle building performance assess
 
 Author: Toivo Säwén, sawen@chalmers.se
 
-Contributors: Isac Mjörnell, misac@chalmers.se, Jieming Yan, jieming@chalmers.se
+Contributors: Isac Mjörnell, misac@chalmers.se; Jieming Yan, jieming@chalmers.se; Lina Eriksson, linaerik@student.chalmers.se
 
 ## Changelog
 
