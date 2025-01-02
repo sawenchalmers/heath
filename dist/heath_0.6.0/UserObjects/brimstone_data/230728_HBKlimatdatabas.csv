@@ -1,0 +1,172 @@
+HB Name,HB Density,Klimatdatabas name,Klimatdatabas density,Comment
+1/2 in. Gypsum Board,800.0018292,"Gypsum, fireboard",830,
+1/2IN Gypsum,784.9017947,"Gypsum, fireboard",830,
+100mm Normalweight concrete floor,2322.006776,"Ready-mix made concrete, buildings C20/25",2350,
+12 in. Normalweight Concrete Floor,2322.005309,"Ready-mix made concrete, buildings C20/25",2350,
+1IN Stucco,1858.004248,Plastering and masonry mortar type C (CS II),1600,
+25mm Stucco,1856.004244,Plastering and masonry mortar type C (CS II),1600,
+4 in. Normalweight Concrete Floor,2322.005309,"Ready-mix made concrete, buildings C20/25",2350,
+4 in. Normalweight Concrete Wall,2322.005309,"Ready-mix made concrete, buildings C20/25",2350,
+5/8 in. Gypsum Board,800.0018292,"Gypsum, fireboard",830,
+5/8 in. Plywood,544.0012438,Plywood (spruce),460,
+6 in. Heavyweight Concrete Roof,2322.005309,"Ready-mix made concrete, buildings C20/25",2350,
+6 in. Normalweight Concrete Floor,2322.005309,"Ready-mix made concrete, buildings C20/25",2350,
+8 in. Concrete Block Basement Wall,1842.004212,"Ready-mix made concrete, buildings C20/25",2350,
+8 in. Concrete Block Wall,800.0018292,"Expanded clay concrete block, 10-14 % cement (700-770 kg/m³)",750,
+8 in. Normalweight Concrete Floor,2322.005309,"Ready-mix made concrete, buildings C20/25",2350,
+8 in. Normalweight Concrete Wall,2322.005309,"Ready-mix made concrete, buildings C20/25",2350,
+8IN CONCRETE HW RefBldg,2240.005122,"Ready-mix made concrete, buildings C20/25",2350,
+8IN Concrete HW,2243.005129,"Ready-mix made concrete, buildings C20/25",2350,
+Acoustic Ceiling,288.0006585,missing,0,no match
+Adiabatic Material,,missing,0,virtual material
+Asphalt Shingles,1120.002561,missing,0,value per square meter in kdb
+AtticFloor Insulation,265.0006059,missing,0,virtual material
+Built-up Roofing,1120.002561,missing,0,virtual material
+Built-up Roofing - Highly Reflective,1120.002561,missing,0,virtual material
+Bulk Storage Products Material,200.2311193,missing,0,virtual material
+CP02 CARPET PAD,,missing,0,no match
+Carpet - 3/4 in. CBES,288.333,missing,0,no match
+F04 Wall air space resistance,,missing,0,virtual material
+F05 Ceiling air space resistance,,missing,0,virtual material
+F08 Metal surface,7824.017889,"Steel sheets for cladding, primary",7850,
+F16 Acoustic tile,368.0008414,missing,0,no match
+G01 13mm gypsum board,800.0023344,"Gypsum, fireboard",830,
+G01a 19mm gypsum board,800.0018292,"Gypsum, fireboard",830,
+G05 25mm wood,608.0013902,"Sawn timber, u 16 %, coniferous ",455,
+Ground_Floor_R11_T2013,16.0185,missing,0,no match
+Ground_Floor_R17_T2013,16.0185,missing,0,no match
+Ground_Floor_R22_T2013,16.0185,missing,0,no match
+Gypsum Board - 1/2 in. CBES,640.74,"Gypsum, standard plasterboard",710,
+Gypsum Or Plaster Board - 3/8 in.,800.0018292,"Gypsum, fireboard",830,
+HW CONCRETE,2240.006536,"Ready-mix made concrete, buildings C20/25",2350,
+HW CONCRETE 8 in,2240.006536,"Ready-mix made concrete, buildings C20/25",2350,
+I01 25mm insulation board,43.00009832,"Glasswool, facade boards",55,
+I02 50mm insulation board,43.00009832,"Glasswool, facade boards",55,
+IEAD NonRes Roof Insulation-1.76,265.0006059,missing,0,no match
+IEAD Roof Insulation R-3.47 IP,265.0006059,missing,0,no match
+Insulation 1m,16.0185,"Glasswool, blowing wool, wall",30,
+M01 100mm brick,1920.00439,Bricks,1800,
+M11 100mm lightweight concrete,1280.002927,missing,0,no match
+M15 200mm heavyweight concrete,2240.005122,"Ready-mix made concrete, buildings C20/25",2350,
+MAT-CC05 4 HW CONCRETE,2240.005122,"Ready-mix made concrete, buildings C20/25",2350,
+MAT-CC05 8 HW CONCRETE,2240.005122,"Ready-mix made concrete, buildings C20/25",2350,
+MAT-SHEATH,,missing,,virtual material
+Mass NonRes Wall Insulation-0.43,265.0006059,missing,0,virtual material
+Mass Wall Insulation R-4.23 IP,265.0006059,missing,0,virtual material
+Metal Building Semi-Cond Wall Insulation-0.54,265.0006059,missing,0,virtual material
+Metal Building Wall Insulation R-4.14 IP,265.0006059,missing,0,virtual material
+Metal Decking,7680.01756,"Steel sheets for cladding, primary",7850,
+Metal Roof Insulation R-5.21 IP,265.0006059,missing,0,virtual material
+Metal Roof Surface,7824.017889,"Steel sheets for cladding, primary",7850,
+Metal Roof Surface - Highly Reflective,7824.017889,"Steel sheets for cladding, primary",7850,
+Metal Roofing,7680.01756,"Steel sheets for cladding, primary",7850,
+Metal Roofing - Highly Reflective,7680.01756,"Steel sheets for cladding, primary",7850,
+Metal Semi-Cond Roof Insulation-1.05,265.0006059,missing,0,virtual material
+Metal Siding,7688.87758,"Steel sheets for cladding, primary",7850,
+Metal Standing Seam - 1/16 in. CBES,7820.55207,"Steel sheets for cladding, primary",7850,
+Metal Surface,7824.017889,"Steel sheets for cladding, primary",7850,
+NACM_Carpet 3/4in,288.333,missing,0,no match
+NACM_Concrete 4in_140lb/ft3,2239.06593,"Ready-mix made concrete, buildings C20/25",2350,
+NACM_Gypsum Board 5/8in,640.74,"Gypsum, standard plasterboard",710,
+Nonres_Floor_Insulation,,missing,0,virtual material
+Plywood - 5/8 in. CBES,480.555,Plywood (spruce),460,
+R1_R14.20,16.0185,missing,0,no match
+R2_R12.90,16.0185,missing,0,no match
+R3_R17.74,16.0185,missing,0,no match
+R4_R20.28,16.0185,missing,0,no match
+R_R30,16.0185,missing,0,no match
+R_R38,16.0185,missing,0,no match
+R_T24_2013_24.86,16.0185,missing,0,no match
+Roof Insulation [18],265.0006059,missing,0,no match
+Roof Membrane,1121.292564,missing,0,no match
+Roof Membrane - Highly Reflective,1121.292564,missing,0,no match
+Std Wood 6 in.,540.0012347,"Sawn timber, u 16 %, coniferous ",455,
+Std Wood 6inch Furnishings,539.983635,"Sawn timber, u 16 %, coniferous ",455,
+Steel Frame NonRes Wall Insulation-0.73,265.0006059,missing,0,virtual material
+Steel Frame Wall Insulation R-1.02 IP,265.0006059,missing,0,virtual material
+Steel Frame/Cavity,641.3803215,missing,0,virtual material
+Stucco - 7/8 in. CBES,1855.102485,Plastering and masonry mortar type C (CS II),1600,
+Typical Air Wall,,missing,,virtual material
+Typical Carpet Pad,,missing,,virtual material
+Typical Insulation,,missing,,virtual material
+W1_R8.60,16.0185,missing,0,no match
+W2_R11.13,16.0185,missing,0,no match
+W3_R11.36,16.0185,missing,0,no match
+W4_R12.62,16.0185,missing,0,no match
+W_T24_2013_R13.99,16.0185,missing,0,no match
+W_m1_R15,16.0185,missing,0,no match
+W_m2_R19,16.0185,missing,0,no match
+W_m3_R21,16.0185,missing,0,no match
+Wall Insulation [31],91.00020807,"Stone wool, facade board",80,
+Wood Frame NonRes Wall Insulation-0.73,265.0006059,missing,0,no match
+Wood Frame Wall Insulation R-1.61 IP,265.0006059,missing,0,no match
+Wood Siding,544.6212453,"Sawn timber, u 16 %, coniferous ",455,
+ceiling_2_Insulation,16.0185,missing,0,no match
+Typical Insulation-R1,,missing,0,no match
+Typical Insulation-R2,,missing,0,no match
+Typical Insulation-R3,,missing,0,no match
+Typical Insulation-R4,,missing,0,no match
+Typical Insulation-R5,,missing,0,no match
+Typical Insulation-R6,,missing,0,no match
+Typical Insulation-R7,,missing,0,no match
+Typical Insulation-R8,,missing,0,no match
+Typical Insulation-R9,,missing,0,no match
+Typical Insulation-R10,,missing,0,no match
+Typical Insulation-R11,,missing,0,no match
+Typical Insulation-R12,,missing,0,no match
+Typical Insulation-R13,,missing,0,no match
+Typical Insulation-R14,,missing,0,no match
+Typical Insulation-R15,,missing,0,no match
+Typical Insulation-R16,,missing,0,no match
+Typical Insulation-R17,,missing,0,no match
+Typical Insulation-R18,,missing,0,no match
+Typical Insulation-R19,,missing,0,no match
+Typical Insulation-R20,,missing,0,no match
+Typical Insulation-R21,,missing,0,no match
+Typical Insulation-R22,,missing,0,no match
+Typical Insulation-R23,,missing,0,no match
+Typical Insulation-R24,,missing,0,no match
+Typical Insulation-R25,,missing,0,no match
+Typical Insulation-R26,,missing,0,no match
+Typical Insulation-R27,,missing,0,no match
+Typical Insulation-R28,,missing,0,no match
+Typical Insulation-R29,,missing,0,no match
+Typical Insulation-R30,,missing,0,no match
+Typical Insulation-R31,,missing,0,no match
+Typical Insulation-R32,,missing,0,no match
+Typical Insulation-R33,,missing,0,no match
+Typical Insulation-R34,,missing,0,no match
+Typical Insulation-R35,,missing,0,no match
+Typical Insulation-R36,,missing,0,no match
+Typical Insulation-R37,,missing,0,no match
+Typical Insulation-R38,,missing,0,no match
+Typical Insulation-R39,,missing,0,no match
+Typical Insulation-R40,,missing,0,no match
+Typical Insulation-R41,,missing,0,no match
+Typical Insulation-R42,,missing,0,no match
+Typical Insulation-R43,,missing,0,no match
+Typical Insulation-R44,,missing,0,no match
+Typical Insulation-R45,,missing,0,no match
+Typical Insulation-R46,,missing,0,no match
+Typical Insulation-R47,,missing,0,no match
+Typical Insulation-R48,,missing,0,no match
+Typical Insulation-R49,,missing,0,no match
+Typical Insulation-R50,,missing,0,no match
+Typical Insulation-R51,,missing,0,no match
+Typical Insulation-R52,,missing,0,no match
+Typical Insulation-R53,,missing,0,no match
+Typical Insulation-R54,,missing,0,no match
+Typical Insulation-R55,,missing,0,no match
+Typical Insulation-R56,,missing,0,no match
+Typical Insulation-R57,,missing,0,no match
+Typical Insulation-R58,,missing,0,no match
+Typical Insulation-R59,,missing,0,no match
+Typical Insulation-R60,,missing,0,no match
+Dry Sand,1555,missing,0,no match
+Dry Dust,1600,missing,0,no match
+Moist Soil,1250,missing,0,no match
+Mud,1840,missing,0,no match
+Concrete Pavement,2243,Concrete roof tiles,2400,
+Asphalt Pavement,2360,missing,0,no match
+Solid Rock,2700,missing,0,no match
+Grassy Lawn,1100,missing,0,no match

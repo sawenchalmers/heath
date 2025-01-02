@@ -1,0 +1,3 @@
+[submodule "brimstone"]
+	path = brimstone
+	url = https://github.com/sawenchalmers/brimstone.git
