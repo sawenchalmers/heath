@@ -1,4 +1,5 @@
-"""packs heath files for delivery"""
+"""packs heath files for delivery
+usage: `python pack_heath.py -v x.y.z"""
 
 import argparse
 import os
@@ -11,25 +12,33 @@ def main(args):
         return
     target_dir = f"./dist/heath_{version}"
     try:
-        os.mkdir(target_dir)
-        shutil.copy(f"./README.md", f"{target_dir}/README.md")
-        print(f"copied README.md")
+        dirs = [
+            target_dir,
+            f"{target_dir}/UserObjects",
+            f"{target_dir}/UserObjects/heath",
+            f"{target_dir}/UserObjects/brimstone_data",
+        ]
 
-        shutil.copy(f"./dist/heathUI_{version}.gh", f"{target_dir}/heathUI_{version}.gh")
-        print(f"copied heathUI_{version}.gh")
+        for d in dirs:
+            os.mkdir(d)
 
-        os.mkdir(f"{target_dir}/UserObjects")
-        shutil.copy(f"./brimstone/brimstone.py", f"{target_dir}/UserObjects/brimstone.py")
-        print(f"copied brimstone.py")
+        files = {
+            f"./README.md": f"{target_dir}/README.md",
+            f"./dist/heathUI_{version}.gh": f"{target_dir}/heathUI_{version}.gh",
+            f"./brimstone/brimstone.py": f"{target_dir}/UserObjects/brimstone.py",
+            f"./src/heath.py": f"{target_dir}/UserObjects/heath/heath.py",
+            f"./src/heath_ui.py": f"{target_dir}/UserObjects/heath/heath_ui.py",
+            f"./icons/butterfly_heath.png": f"{target_dir}/UserObjects/heath/butterfly_heath.png",
+            f"./src/patch_honeybee.py": f"{target_dir}/UserObjects/heath/patch_honeybee.py",
+        }
 
-        os.mkdir(f"{target_dir}/UserObjects/heath")
-        shutil.copy(f"./src/heath.py", f"{target_dir}/UserObjects/heath/heath.py")
-        print(f"copied heath.py")
+        for f,t in files.items():
+            shutil.copy(f, t)
+            print(f"copied {f}")
 
-        os.mkdir(f"{target_dir}/UserObjects/brimstone_data")
         for file in os.listdir("./brimstone/brimstone_data"):
-            print(f"copied {file}")
             shutil.copy(f"./brimstone/brimstone_data/{file}", f"{target_dir}/UserObjects/brimstone_data/{file}")
+            print(f"copied {file}")
 
         shutil.make_archive(target_dir, "zip", target_dir)
 
