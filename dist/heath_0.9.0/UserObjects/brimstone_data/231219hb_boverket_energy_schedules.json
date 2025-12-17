@@ -1,0 +1,56 @@
+{
+    "BigHouse":
+     {
+        "id": "BigHouse",
+        "name": "Big house",
+        "people": {
+            "__comment__": "made up values",
+            "people_per_area": 0.8,
+            "__unit__": "occupants per area [people/m2]",
+
+            "occupancy_schedule": [
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
+            ],
+            "activity_schedule": [
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
+            ]
+        },
+        "lighting": {
+            "__comment__": "made up values",
+            "lighting_per_area": 0.8,
+            "__unit__": "power density [W/m2]",
+            "schedule": [
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
+            ]
+        },
+
+        "electric_equipment": {
+            "__comment__": "made up values",
+            "equip_per_area": 0.8,
+            "__unit__": "power density [W/m2]",
+            "schedule": [
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
+            ]
+        },
+
+        "service_hot_water": {
+            "__comment__": "made up values",
+            "flow_per_area": 0.8,
+            "__unit__": "flow per area [l/h,m2]",
+            "schedule": [
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+                0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
+            ]
+        },
+        "setpoint": {
+            "__comment__": "made up values",
+            "__unit__": "temperature [degC]",
+            "heating_schedule": 1,
+            "cooling_schedule": 1
+        }
+    }
+}
