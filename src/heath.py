@@ -22,6 +22,7 @@ Inspired by Ladybug Tools 1.6.0:
 
 from dataclasses import dataclass
 import json
+from time import time as t
 from typing import Any, Dict, List, Optional, Union
 from Grasshopper.Kernel import GH_RuntimeMessageLevel as Message # type: ignore
 import rhinoscriptsyntax as rs
@@ -120,24 +121,44 @@ def create_hb_model(
         louver_settings: Optional[LouverSettings],
         context_geo: List[Union[Mesh, Brep]],
         model_name: str,
-    ) -> Model:
-
+    ) -> tuple[Model, List[str]]:
+    
+    time_report = []
+    s = t()
     rooms = _create_hb_rooms(room_geo, construction_sets, programs, adj_srf, energy_systems)
+    e = t()
+    time_report.append(f"Created HB rooms in {e-s} s")
     if window_geo:
+        s = t()
         apertures = _create_hb_apertures(window_geo)
         rooms = _add_subfaces(rooms, apertures)
+        e = t()
+        time_report.append(f"Created HB apertures in {e-s} s")
     elif window_settings:
+        s = t()
         ws = window_settings
         apertures = _auto_hb_apertures(rooms, ws.window_wall_ratio, ws.window_height, ws.sill_height, ws.horizontal_separation)
+        e = t()
+        time_report.append(f"Created auto HB apertures in {e-s} s")
     else:
         raise Exception("Either window geo or window settings are required inputs")
 
+    s = t()
     rooms = _add_window_shades(rooms, window_settings, louver_settings)
+    e = t()
+    time_report.append(f"Created window shades in {e-s} s")
 
+    s = t()
     context = _add_shades(context_geo) if (context_geo) else []
-    hb_model = _generate_hb_model(model_name, rooms, None, context)
+    e = t()
+    time_report.append(f"Created context in {e-s} s")
 
-    return hb_model
+    s = t()
+    hb_model = _generate_hb_model(model_name, rooms, None, context)
+    e = t()
+    time_report.append(f"Created HB model in {e-s} s")
+
+    return hb_model, time_report
 
 def _create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], energy_systems: List[str]) -> List[Room]:
     """_summary_
@@ -486,7 +507,7 @@ def _generate_hb_model(name: str, rooms: List[Room], apertures: List[Aperture], 
     return Model(clean_string(name), rooms, None, shades, apertures, None, None, units_system(), tolerance, angle_tolerance)
 
 class heath_globals:
-    version = "0.8.0"
+    version = "0.9.0"
     results_folder = "results"
 
 class utils:

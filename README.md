@@ -51,7 +51,7 @@ or at: `C:\Users\[your name]\AppData\Roaming\Grasshopper\UserObjects`
 
 ### Releasing a new version
 * Update heath_globals.version in src/heath.py
-* Update current_gh_version input of "Heath - Fly!" component in .gh model
+* Update current_gh_versions input of "Heath - Fly!" component in .gh model
 * Copy `heathUI_x.y.z-dev.gh` as `dist/heathUI_x.y.z.gh`
 * Run `python pack_heath.py -v x.y.z` in root to generate `dist/heath_x.y.z.zip` for distribution
 * After pushing to `main`, rename the dev file in `/model`
