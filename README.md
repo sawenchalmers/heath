@@ -93,7 +93,27 @@ Author: Toivo Säwén, sawen@chalmers.se
 
 Contributors: Isac Mjörnell, misac@chalmers.se; Jieming Yan, jieming@chalmers.se; Lina Eriksson, linaerik@student.chalmers.se
 
+Testing: Simon Kallioinen, Maja Lindborg, Giovana Fantin do Amaral Silva, Omar Zalloum,
+
 ## Changelog
+
+### 0.9.1
+* Bug fixes and visual improvements
+* Added settings to daylight simulation dialogue
+* Prevented launching Heath with faulty installation
+* Deactivated Cyclops
+* Remove context from Model visualisation
+* Added "Energy end use" visualisation
+* Output design day for heating and cooling balance visualisations
+* Added default HVAC system to energy model
+* Fixed Klimatdatabas API access
+
+
+### 0.9.0
+* Bug fixes and improvements
+
+### 0.8.0
+* Bug fixes and improvements
 
 ### 0.7.0
 * Bug fixes and improvements
@@ -102,20 +122,17 @@ Contributors: Isac Mjörnell, misac@chalmers.se; Jieming Yan, jieming@chalmers.s
 * Major changes to UI and added features
 
 ### 0.5.0
+* Bug fixes and improvements
 
 ### 0.4.0
-
 * Back-end updates
 * New logo celebration!
 
 ### 0.3.0
-
 * Back-end updates
 
 ### 0.2.0
-
 * Updates to UI and back-end
 
 ### 0.1.0
-
 * Initial version
