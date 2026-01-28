@@ -41,6 +41,7 @@ def main(args):
             print(f"copied {file}")
 
         shutil.make_archive(target_dir, "zip", target_dir)
+        shutil.rmtree(target_dir)
 
     except:
         # it failed, remove the broken directory
