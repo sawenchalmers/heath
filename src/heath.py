@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Heath.
+# Copyright (c) 2026, Heath.
 # You should have received a copy of the GNU Affero General Public License
 # along with Heath; If not, see <http://www.gnu.org/licenses/>.
 # 
@@ -121,17 +121,19 @@ def create_hb_model(
         louver_settings: Optional[LouverSettings],
         context_geo: List[Union[Mesh, Brep]],
         model_name: str,
-    ) -> tuple[Model, List[str]]:
-    
+    ) -> tuple[Model, List[str], Dict[str, List[str]]]:
+    warnings = {}
     time_report = []
     s = t()
-    rooms = _create_hb_rooms(room_geo, construction_sets, programs, adj_srf, energy_systems)
+    rooms, w_room = _create_hb_rooms(room_geo, construction_sets, programs, adj_srf, energy_systems, ghenv)
+    warnings["rooms"] = w_room
     e = t()
     time_report.append(f"Created HB rooms in {e-s} s")
     if window_geo:
         s = t()
         apertures = _create_hb_apertures(window_geo)
-        rooms = _add_subfaces(rooms, apertures)
+        rooms, w_face = _add_subfaces(rooms, apertures, ghenv)
+        warnings["face"] = w_face
         e = t()
         time_report.append(f"Created HB apertures in {e-s} s")
     elif window_settings:
@@ -142,12 +144,12 @@ def create_hb_model(
         time_report.append(f"Created auto HB apertures in {e-s} s")
     else:
         raise Exception("Either window geo or window settings are required inputs")
-
+    print(rooms)
     s = t()
     rooms = _add_window_shades(rooms, window_settings, louver_settings)
     e = t()
     time_report.append(f"Created window shades in {e-s} s")
-
+    print(rooms)
     s = t()
     context = _add_shades(context_geo) if (context_geo) else []
     e = t()
@@ -158,9 +160,9 @@ def create_hb_model(
     e = t()
     time_report.append(f"Created HB model in {e-s} s")
 
-    return hb_model, time_report
+    return hb_model, time_report, warnings
 
-def _create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], energy_systems: List[str]) -> List[Room]:
+def _create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionSet], programs: List[ProgramType], adj_srf: List[Brep], energy_systems: List[str], ghenv: Any) -> tuple[List[Room], List[str]]:
     """_summary_
 
     Args:
@@ -174,7 +176,7 @@ def _create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionS
     """
     room_solids = _intersect_room_geometry(room_geo)
     names = [] # todo: allow room names as input
-    rooms = _create_rooms(room_solids, names)
+    rooms, warnings = _create_rooms(room_solids, names, ghenv)
     _apply_energy_property(rooms, construction_sets, "construction_set", mutate=True)
     _apply_energy_property(rooms, programs, "program_type", mutate=True)
     rooms = _solve_adjacency(rooms)
@@ -183,7 +185,7 @@ def _create_hb_rooms(room_geo: List[Brep], construction_sets: List[ConstructionS
     if energy_systems:
         rooms = _set_energy_systems(rooms, energy_systems)
     
-    return rooms
+    return rooms, warnings
 
 def _intersect_room_geometry(room_geo: List[Brep]) -> List[Brep]:
     """_summary_
@@ -198,7 +200,7 @@ def _intersect_room_geometry(room_geo: List[Brep]) -> List[Brep]:
     room_solids = intersect_solids(room_geo, bounding_boxes)
     return room_solids
 
-def _create_rooms(room_solids: List[Brep], names: List[str]) -> List[Room]:
+def _create_rooms(room_solids: List[Brep], names: List[str], ghenv: Any) -> tuple[List[Room], List[str]]:
     """_summary_
 
     Args:
@@ -207,7 +209,9 @@ def _create_rooms(room_solids: List[Brep], names: List[str]) -> List[Room]:
 
     Returns:
         List[Room]: _description_
+        List[str]: warnings
     """
+    warnings = []
     rooms = []
     roof_angle = 60 # default from HB
     floor_angle = 180 - roof_angle # default from HB
@@ -231,9 +235,10 @@ def _create_rooms(room_solids: List[Brep], names: List[str]) -> List[Room]:
                 'Room volume must be closed to access most honeybee features.\n' \
                 'Preview the output Room to see the holes in your model.'
             print(msg)
+            warnings.append(msg)
             utils.warn(ghenv, msg) # type: ignore
         rooms.append(room)
-    return rooms
+    return rooms, warnings
 
 def _apply_energy_property(rooms: List[Room], data: Any, key: str, mutate: bool = False) -> List[Room]:
     """Sets an energy property for input rooms
@@ -416,7 +421,7 @@ def _add_louver_shades(apt: Aperture, depth: float, count: int, dist: float, ang
     
     return apt
 
-def _add_subfaces(rooms: List[Room], apertures: List[Aperture]) -> List[Room]:
+def _add_subfaces(rooms: List[Room], apertures: List[Aperture], ghenv: Any) -> tuple[List[Room], List[str]]:
     """_summary_
 
     Args:
@@ -425,7 +430,9 @@ def _add_subfaces(rooms: List[Room], apertures: List[Aperture]) -> List[Room]:
 
     Returns:
         List[Room]: _description_
+        List[str]: warnings
     """
+    warnings = []
     rooms = [r.duplicate() for r in rooms]
     apertures = [a.duplicate() for a in apertures]
     
@@ -448,9 +455,10 @@ def _add_subfaces(rooms: List[Room], apertures: List[Aperture]) -> List[Room]:
     unmatched_ids = [apt_id for apt_id in apt_ids if apt_id is not None]
     if len(unmatched_ids):
         msg = f"The following sub-faces were not matched with any parent Face:{', '.join(unmatched_ids)}"
+        warnings.append(msg)
         utils.warn(ghenv, msg) # type: ignore
 
-    return rooms
+    return rooms, warnings
 
 def _add_window_shades(rooms: List[Room], window_settings: WindowSettings, louver_settings: LouverSettings ) -> List[Room]:
     """_summary_
@@ -507,7 +515,7 @@ def _generate_hb_model(name: str, rooms: List[Room], apertures: List[Aperture], 
     return Model(clean_string(name), rooms, None, shades, apertures, None, None, units_system(), tolerance, angle_tolerance)
 
 class heath_globals:
-    version = "0.9.1"
+    version = "0.9.3"
     results_folder = "results"
 
 class utils:
