@@ -93,7 +93,7 @@ Author: Toivo Säwén, sawen@chalmers.se
 
 Contributors: Isac Mjörnell, misac@chalmers.se; Jieming Yan, jieming@chalmers.se; Lina Eriksson, linaerik@student.chalmers.se
 
-Testing: Simon Kallioinen, Maja Lindborg, Giovana Fantin do Amaral Silva, Omar Zalloum,
+Testing: Simon Kallioinen, Maja Lindborg, Giovana Fantin do Amaral Silva, Omar Zalloum, Daniel Runebjörk
 
 ## Changelog
 

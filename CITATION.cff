@@ -1,0 +1,37 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Heath
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Toivo
+    family-names: Säwén
+    email: sawen@chalmers.se
+    affiliation: Chalmers University of Technology
+    orcid: 'https://orcid.org/0000-0001-7989-3021'
+  - given-names: Jieming
+    family-names: Yan
+    email: jieming.yan@chalmers.se
+    affiliation: Chalmers University of Technology
+  - given-names: Isac
+    family-names: Mjörnell
+    email: misac@student.chalmers.se
+    affiliation: Chalmers University of Technology
+  - given-names: Lina
+    family-names: Eriksson
+    email: linaerik@student.chalmers.se
+    affiliation: Chalmers University of Technology
+repository-code: 'https://github.com/sawenchalmers/heath'
+abstract: >-
+  This Grasshopper plugin provides a UI for life cycle
+  building performance assessment in the Rhino environment.
+keywords:
+  - life cycle assessment
+  - building performance analysis
+  - energy simulation
+  - daylight simulation
+license: GPL-3.0
